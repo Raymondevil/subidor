@@ -1,0 +1,14 @@
+{
+  "name": "servidor-subida-videos",
+  "version": "1.0.0",
+  "description": "Página para subir videos a un servidor casero, pensada para exponerse via cloudflared tunnel",
+  "type": "commonjs",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "multer": "^1.4.5-lts.1"
+  }
+}

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#4f8cff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
+<title>Subir video</title>
+<style>
+  body { font-family: system-ui, sans-serif; background: #111; color: #eee; display: flex;
+         justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+  .card { background: #1c1c1c; padding: 1.5rem; border-radius: 12px; width: 92%; max-width: 420px; }
+  h1 { font-size: 1.2rem; margin-top: 0; }
+  label { font-size: 0.85rem; color: #aaa; }
+  input[type=password] { width: 100%; padding: 0.7rem; margin: 0.4rem 0 0.3rem;
+         background: #2a2a2a; border: 1px solid #444; border-radius: 6px; color: #eee;
+         box-sizing: border-box; font-size: 1rem; }
+  .remember { display: flex; align-items: center; gap: 0.4rem; margin-bottom: 1.2rem; font-size: 0.85rem; color: #aaa; }
+  #drop { border: 2px dashed #444; border-radius: 10px; padding: 2.2rem 1rem; text-align: center;
+          margin-bottom: 1rem; color: #ddd; font-size: 1.05rem; -webkit-tap-highlight-color: transparent; }
+  #drop.over { border-color: #4f8cff; color: #fff; }
+  button { width: 100%; padding: 0.9rem; background: #4f8cff; border: none; border-radius: 8px;
+         color: white; font-size: 1.05rem; cursor: pointer; }
+  button:disabled { background: #555; cursor: not-allowed; }
+  progress { width: 100%; height: 1.2rem; margin-top: 1rem; }
+  #status { margin-top: 0.8rem; font-size: 0.9rem; min-height: 1.2rem; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>Subir video al servidor</h1>
+    <label>Clave de acceso</label>
+    <input type="password" id="token" placeholder="Clave">
+    <label class="remember">
+      <input type="checkbox" id="remember" style="width:auto"> Recordar en este teléfono
+    </label>
+    <div id="drop">📷 Toca para elegir un video de tus fotos</div>
+    <input type="file" id="file" accept="video/*" style="display:none">
+    <button id="btn" disabled>Subir</button>
+    <progress id="bar" value="0" max="100" style="display:none"></progress>
+    <div id="status"></div>
+  </div>
+
+<script>
+const drop = document.getElementById('drop');
+const fileInput = document.getElementById('file');
+const btn = document.getElementById('btn');
+const bar = document.getElementById('bar');
+const statusEl = document.getElementById('status');
+const tokenInput = document.getElementById('token');
+const rememberBox = document.getElementById('remember');
+let selectedFile = null;
+
+const savedToken = localStorage.getItem('uploadToken');
+if (savedToken) {
+  tokenInput.value = savedToken;
+  rememberBox.checked = true;
+}
+rememberBox.addEventListener('change', () => {
+  if (!rememberBox.checked) localStorage.removeItem('uploadToken');
+});
+
+drop.addEventListener('click', () => fileInput.click());
+drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('over'); });
+drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+drop.addEventListener('drop', e => {
+  e.preventDefault();
+  drop.classList.remove('over');
+  if (e.dataTransfer.files.length) setFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', () => {
+  if (fileInput.files.length) setFile(fileInput.files[0]);
+});
+
+function setFile(file) {
+  selectedFile = file;
+  drop.textContent = `Seleccionado: ${file.name}`;
+  btn.disabled = false;
+}
+
+btn.addEventListener('click', () => {
+  if (!selectedFile) return;
+  const token = tokenInput.value;
+  if (rememberBox.checked) localStorage.setItem('uploadToken', token);
+  const formData = new FormData();
+  formData.append('video', selectedFile);
+
+  const xhr = new XMLHttpRequest();
+  xhr.open('POST', '/upload');
+  xhr.setRequestHeader('x-upload-token', token);
+
+  bar.style.display = 'block';
+  bar.value = 0;
+  statusEl.textContent = 'Subiendo...';
+  btn.disabled = true;
+
+  xhr.upload.addEventListener('progress', e => {
+    if (e.lengthComputable) bar.value = (e.loaded / e.total) * 100;
+  });
+
+  xhr.onload = () => {
+    btn.disabled = false;
+    try {
+      const res = JSON.parse(xhr.responseText);
+      statusEl.textContent = xhr.status === 200 ? `✔ ${res.message}` : `✖ ${res.error}`;
+    } catch {
+      statusEl.textContent = '✖ Error inesperado';
+    }
+  };
+
+  xhr.onerror = () => {
+    btn.disabled = false;
+    statusEl.textContent = '✖ Error de conexión';
+  };
+
+  xhr.send(formData);
+});
+</script>
+</body>
+</html>
