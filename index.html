@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="/manifest.json">
 <link rel="apple-touch-icon" href="/icons/icon-192.png">
-<title>Subir video</title>
+<title>Subir fotos y videos</title>
 <style>
   body { font-family: system-ui, sans-serif; background: #111; color: #eee; display: flex;
          justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
@@ -41,19 +41,19 @@
 </head>
 <body>
   <div class="card">
-    <h1>Subir video al servidor</h1>
+    <h1>Subir fotos y videos al servidor</h1>
     <label>Clave de acceso</label>
     <input type="password" id="token" placeholder="Clave">
     <label class="checkbox-row remember">
       <input type="checkbox" id="remember" style="width:auto"> Recordar en este teléfono
     </label>
-    <div id="drop">📷 Toca para elegir un video de tus fotos</div>
-    <input type="file" id="file" accept="video/*" style="display:none">
+    <div id="drop">📁 Toca para elegir fotos o videos</div>
+    <input type="file" id="file" accept="image/*,video/*,.heic,.heif" style="display:none">
 
     <div id="overwrite-box" class="overwrite-box">
       <span id="overwrite-msg">⚠️ Este archivo ya existe en el servidor.</span>
       <label class="checkbox-row" style="margin-top:0.4rem; color:#ffd982; cursor:pointer;">
-        <input type="checkbox" id="overwrite" style="width:auto"> Reemplazar / sobrescribir video
+        <input type="checkbox" id="overwrite" style="width:auto"> Reemplazar / sobrescribir archivo
       </label>
     </div>
 
@@ -174,7 +174,7 @@ async function updateFileStatus() {
       fileAlreadyExists = true;
       overwriteBox.style.display = 'block';
       overwriteMsg.textContent = `⚠️ "${info.filename}" ya existe en el servidor (${formatBytes(info.size)}).`;
-      statusEl.textContent = 'El video ya fue subido anteriormente.';
+      statusEl.textContent = 'El archivo ya fue subido anteriormente.';
       statusEl.style.color = '#f5c066';
       btn.disabled = true;
       btn.textContent = 'Ya existe en el servidor';
@@ -223,7 +223,7 @@ overwriteInput.addEventListener('change', () => {
   if (overwriteInput.checked) {
     btn.disabled = false;
     btn.className = 'warning';
-    btn.textContent = 'Sobrescribir video';
+    btn.textContent = 'Sobrescribir archivo';
   } else {
     btn.disabled = true;
     btn.className = '';
@@ -239,7 +239,7 @@ function resetUploader(keepStatus = false) {
   activeXhr = null;
   currentUploadId = null;
   fileInput.value = '';
-  drop.textContent = '📷 Toca para elegir un video de tus fotos';
+  drop.textContent = '📁 Toca para elegir fotos o videos';
   overwriteBox.style.display = 'none';
   overwriteInput.checked = false;
   btn.disabled = true;
@@ -344,7 +344,7 @@ btn.addEventListener('click', async () => {
       fileAlreadyExists = true;
       overwriteBox.style.display = 'block';
       overwriteMsg.textContent = `⚠️ "${check.filename}" ya existe en el servidor (${formatBytes(check.size)}).`;
-      statusEl.textContent = 'El video ya fue subido antes. No se subió para evitar duplicados.';
+      statusEl.textContent = 'El archivo ya fue subido antes. No se subió para evitar duplicados.';
       statusEl.style.color = '#f5c066';
       btn.disabled = true;
       btn.textContent = 'Ya existe en el servidor';

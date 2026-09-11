@@ -10,7 +10,12 @@ const UPLOAD_TOKEN = process.env.UPLOAD_TOKEN || 'cambia-esta-clave';
 
 if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
-const ALLOWED_EXT = ['.mp4', '.jpg', '.jpeg', '.mov', '.mkv', '.avi', '.webm'];
+const ALLOWED_EXT = [
+  // Videos
+  '.mp4', '.mov', '.mkv', '.avi', '.webm', '.flv', '.wmv', '.m4v', '.3gp', '.ts',
+  // Imágenes
+  '.jpg', '.jpeg', '.png', '.gif', '.webp', '.heic', '.heif', '.bmp', '.tiff', '.tif', '.svg', '.avif'
+];
 
 function sanitizeFilename(original) {
   const base = path.basename(original);
@@ -225,10 +230,11 @@ app.post('/cancel-upload', checkToken, (req, res) => {
 
 // Endpoint tradicional para subida directa en un solo archivo
 app.post('/upload', checkToken, (req, res) => {
-  upload.single('video')(req, res, (err) => {
+  upload.any()(req, res, (err) => {
     if (err) return res.status(400).json({ error: err.message });
-    if (!req.file) return res.status(400).json({ error: 'No se envió ningún archivo' });
-    res.json({ message: 'Subido correctamente', filename: req.file.filename });
+    const file = req.files && req.files[0];
+    if (!file) return res.status(400).json({ error: 'No se envió ningún archivo' });
+    res.json({ message: 'Subido correctamente', filename: file.filename });
   });
 });
 
